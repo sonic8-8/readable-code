@@ -101,7 +101,11 @@ public class Minesweeper {
 
     private void checkIfGameIsOver() {
         if (gameBoard.isAllCellChecked()) {
-            changeGameStatusToLose();
+            changeGameStatusToWin();
         }
+    }
+
+    private void changeGameStatusToWin() {
+        gameStatus = 1;
     }
 }
