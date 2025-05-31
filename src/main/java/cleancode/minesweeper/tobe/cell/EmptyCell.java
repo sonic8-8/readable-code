@@ -1,17 +1,9 @@
 package cleancode.minesweeper.tobe.cell;
 
-public class EmptyCell extends Cell {
+public class EmptyCell implements Cell {
     public static final String EMPTY_SIGN = "■";
-    @Override
-    public String getSign() {
-        if (isOpened) {
-            return EMPTY_SIGN;
-        }
-        if (isFlagged) {
-            return FLAG_SIGN;
-        }
-        return UNCHECKED_SIGN;
-    }
+
+    private final CellState cellState = CellState.initialize();
 
     @Override
     public boolean isLandMine() {
@@ -21,5 +13,36 @@ public class EmptyCell extends Cell {
     @Override
     public boolean hasLandMineCount() {
         return false;
+    }
+
+    @Override
+    public boolean isChecked() {
+        return cellState.isChecked();
+    }
+
+    @Override
+    public boolean isOpened() {
+        return cellState.isOpened();
+    }
+
+    @Override
+    public void flag() {
+        cellState.flag();
+    }
+
+    @Override
+    public void open() {
+        cellState.open();
+    }
+
+    @Override
+    public String getSign() {
+        if (cellState.isOpened()) {
+            return EMPTY_SIGN;
+        }
+        if (cellState.isFlagged()) {
+            return FLAG_SIGN;
+        }
+        return UNCHECKED_SIGN;
     }
 }
