@@ -151,4 +151,9 @@ public class GameBoard {
         return cellPosition.isRowIndexMoreThanOrEqual(rowSize)
                 || cellPosition.isColIndexMoreThanOrEqual(colSize);
     }
+
+    public CellSnapshot getSnapshot(CellPosition cellPosition) {
+        Cell cell = findCell(cellPosition);
+        return cell.getSnapshot();
+    }
 }
