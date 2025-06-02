@@ -7,6 +7,7 @@ import cleancode.minesweeper.tobe.minesweeper.board.position.RelativePosition;
 import cleancode.minesweeper.tobe.minesweeper.board.cell.*;
 
 import java.util.List;
+import java.util.Stack;
 
 public class GameBoard {
 
@@ -43,7 +44,8 @@ public class GameBoard {
             return;
         }
 
-        openSurroundedCellsAt(cellPosition);
+//        openSurroundedCells(cellPosition);
+        openSurroundedCells2(cellPosition);
         checkIfGameIsOver();
     }
 
@@ -137,7 +139,7 @@ public class GameBoard {
         board[position.getRowIndex()][position.getColIndex()] = cell;
     }
 
-    private void openSurroundedCellsAt(CellPosition cellPosition) {
+    private void openSurroundedCells(CellPosition cellPosition) {
         if (isOpenedCell(cellPosition)) {
             return;
         }
@@ -152,7 +154,38 @@ public class GameBoard {
         }
 
         List<CellPosition> surroundPositions = calculateSurroundedPositions(cellPosition, getRowSize(), getColSize());
-        surroundPositions.forEach(this::openSurroundedCellsAt);
+        surroundPositions.forEach(this::openSurroundedCells);
+    }
+
+    private void openSurroundedCells2(CellPosition cellPosition) {
+        Stack<CellPosition> stack = new Stack<>();
+        stack.push(cellPosition);
+
+        while(!stack.isEmpty()) {
+            openAndPushCellAt(stack);
+        }
+    }
+
+    private void openAndPushCellAt(Stack<CellPosition> stack) {
+        CellPosition currentCellPosition = stack.pop();
+
+        if (isOpenedCell(currentCellPosition)) {
+            return;
+        }
+        if (isLandMineCellAt(currentCellPosition)) {
+            return;
+        }
+
+        openOneCellAt(currentCellPosition);
+
+        if (doesCellHaveLandMineCount(currentCellPosition)) {
+            return;
+        }
+
+        List<CellPosition> surroundPositions = calculateSurroundedPositions(currentCellPosition, getRowSize(), getColSize());
+        for (CellPosition surroundPosition : surroundPositions) {
+            stack.push(surroundPosition);
+        }
     }
 
     private void openOneCellAt(CellPosition cellPosition) {
