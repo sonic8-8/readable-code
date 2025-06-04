@@ -1,9 +1,9 @@
 package cleancode.studycafe.mission.io;
 
 import cleancode.studycafe.mission.exception.AppException;
-import cleancode.studycafe.mission.pass.LockerPassSelection;
-import cleancode.studycafe.mission.pass.StudyCafePass;
-import cleancode.studycafe.mission.pass.StudyCafePassType;
+import cleancode.studycafe.mission.pass.lockerpass.LockerPassSelection;
+import cleancode.studycafe.mission.pass.seatpass.SeatPass;
+import cleancode.studycafe.mission.pass.seatpass.SeatPassType;
 
 import java.util.List;
 import java.util.Scanner;
@@ -12,22 +12,22 @@ public class InputHandler {
 
     private static final Scanner SCANNER = new Scanner(System.in);
 
-    public StudyCafePassType getPassTypeSelectingUserAction() {
+    public SeatPassType getPassTypeSelectingUserAction() {
         String userInput = SCANNER.nextLine();
 
         if ("1".equals(userInput)) {
-            return StudyCafePassType.HOURLY;
+            return SeatPassType.HOURLY;
         }
         if ("2".equals(userInput)) {
-            return StudyCafePassType.WEEKLY;
+            return SeatPassType.WEEKLY;
         }
         if ("3".equals(userInput)) {
-            return StudyCafePassType.FIXED;
+            return SeatPassType.FIXED;
         }
         throw new AppException("잘못된 입력입니다.");
     }
 
-    public StudyCafePass getSelectPass(List<StudyCafePass> passes) {
+    public SeatPass getSelectPass(List<SeatPass> passes) {
         String userInput = SCANNER.nextLine();
         int selectedIndex = Integer.parseInt(userInput) - 1;
         return passes.get(selectedIndex);

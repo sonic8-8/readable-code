@@ -1,4 +1,4 @@
-package cleancode.studycafe.mission.pass;
+package cleancode.studycafe.mission.pass.lockerpass;
 
 public enum LockerPassSelection {
     SELECTED("선택"),

@@ -1,8 +1,7 @@
 package cleancode.studycafe.mission.io;
 
-import cleancode.studycafe.mission.pass.StudyCafeLockerPass;
-import cleancode.studycafe.mission.pass.StudyCafePass;
-import cleancode.studycafe.mission.pass.StudyCafePassType;
+import cleancode.studycafe.mission.pass.lockerpass.LockerPass;
+import cleancode.studycafe.mission.pass.seatpass.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,38 +11,50 @@ import java.util.List;
 
 public class StudyCafeFileHandler {
 
-    public List<StudyCafePass> readStudyCafePasses() {
+    public List<SeatPass> readStudyCafePasses() {
         try {
             List<String> lines = Files.readAllLines(Paths.get("src/main/resources/cleancode/studycafe/pass-list.csv"));
-            List<StudyCafePass> studyCafePasses = new ArrayList<>();
+            List<SeatPass> seatPasses = new ArrayList<>();
             for (String line : lines) {
                 String[] values = line.split(",");
-                StudyCafePassType studyCafePassType = StudyCafePassType.valueOf(values[0]);
+                SeatPassType passType = SeatPassType.valueOf(values[0]);
                 int duration = Integer.parseInt(values[1]);
                 int price = Integer.parseInt(values[2]);
                 double discountRate = Double.parseDouble(values[3]);
 
-                StudyCafePass studyCafePass = StudyCafePass.of(studyCafePassType, duration, price, discountRate);
-                studyCafePasses.add(studyCafePass);
+                if (isFixed(passType)) {
+                    FixedSeatPass fixedSeatPass = FixedSeatPass.of(duration, price, discountRate);
+                    seatPasses.add(fixedSeatPass);
+                    continue;
+                }
+                if (isHourly(passType)) {
+                    HourlySeatPass hourlySeatPass = HourlySeatPass.of(duration, price, discountRate);
+                    seatPasses.add(hourlySeatPass);
+                    continue;
+                }
+                if (isWeekly(passType)) {
+                    WeeklySeatPass studyCafeWeeklyPass = WeeklySeatPass.of(duration, price, discountRate);
+                    seatPasses.add(studyCafeWeeklyPass);
+                }
             }
 
-            return studyCafePasses;
+            return seatPasses;
         } catch (IOException e) {
             throw new RuntimeException("파일을 읽는데 실패했습니다.", e);
         }
     }
 
-    public List<StudyCafeLockerPass> readLockerPasses() {
+    public List<LockerPass> readLockerPasses() {
         try {
             List<String> lines = Files.readAllLines(Paths.get("src/main/resources/cleancode/studycafe/locker.csv"));
-            List<StudyCafeLockerPass> lockerPasses = new ArrayList<>();
+            List<LockerPass> lockerPasses = new ArrayList<>();
             for (String line : lines) {
                 String[] values = line.split(",");
-                StudyCafePassType studyCafePassType = StudyCafePassType.valueOf(values[0]);
+                SeatPassType seatPassType = SeatPassType.valueOf(values[0]);
                 int duration = Integer.parseInt(values[1]);
                 int price = Integer.parseInt(values[2]);
 
-                StudyCafeLockerPass lockerPass = StudyCafeLockerPass.of(studyCafePassType, duration, price);
+                LockerPass lockerPass = LockerPass.of(seatPassType, duration, price);
                 lockerPasses.add(lockerPass);
             }
 
@@ -51,6 +62,18 @@ public class StudyCafeFileHandler {
         } catch (IOException e) {
             throw new RuntimeException("파일을 읽는데 실패했습니다.", e);
         }
+    }
+
+    private boolean isWeekly(SeatPassType passType) {
+        return passType == SeatPassType.WEEKLY;
+    }
+
+    private boolean isHourly(SeatPassType passType) {
+        return passType == SeatPassType.HOURLY;
+    }
+
+    private boolean isFixed(SeatPassType passType) {
+        return passType == SeatPassType.FIXED;
     }
 
 }
