@@ -3,21 +3,18 @@ package cleancode.studycafe.mission;
 import cleancode.studycafe.mission.exception.AppException;
 import cleancode.studycafe.mission.io.InputHandler;
 import cleancode.studycafe.mission.io.OutputHandler;
-import cleancode.studycafe.mission.io.StudyCafeFileHandler;
-import cleancode.studycafe.mission.pass.StudyCafeLockerPass;
-import cleancode.studycafe.mission.pass.StudyCafePass;
-import cleancode.studycafe.mission.pass.StudyCafePassType;
+import cleancode.studycafe.mission.pass.*;
 
 import java.util.List;
 
 public class StudyCafePassMachine {
 
-    private final StudyCafeFileHandler studyCafeFileHandler;
+    private final StudyCafePassProcessor passProcessor;
     private final InputHandler inputHandler = new InputHandler();
     private final OutputHandler outputHandler = new OutputHandler();
 
     public StudyCafePassMachine() {
-        this.studyCafeFileHandler = new StudyCafeFileHandler();
+        this.passProcessor = new StudyCafePassProcessor();
     }
 
     public void run() {
@@ -27,7 +24,7 @@ public class StudyCafePassMachine {
 
             outputHandler.askPassTypeSelection();
             StudyCafePassType studyCafePassType = inputHandler.getPassTypeSelectingUserAction();
-            List<StudyCafePass> studyCafePasses = getStudyCafePasses();
+            List<StudyCafePass> studyCafePasses = passProcessor.readStudyCafePasses();
             processOrder(studyCafePassType, studyCafePasses);
         } catch (AppException e) {
             outputHandler.showSimpleMessage(e.getMessage());
@@ -37,90 +34,69 @@ public class StudyCafePassMachine {
     }
 
     private void processOrder(StudyCafePassType studyCafePassType, List<StudyCafePass> studyCafePasses) {
-        if (isHourlyPassType(studyCafePassType)) {
-            List<StudyCafePass> hourlyPasses = makeHourlyPasses(studyCafePasses);
-            outputHandler.showPassListForSelection(hourlyPasses);
-            StudyCafePass selectedPass = inputHandler.getSelectPass(hourlyPasses);
-            outputHandler.showPassOrderSummary(selectedPass, null);
+        if (passProcessor.isHourlyPassType(studyCafePassType)) {
+            StudyCafePass selectedHourlyPass = getHourlyPassFromUser(studyCafePasses);
+            outputHandler.showPassOrderSummary(selectedHourlyPass);
             return;
         }
-        if (isWeeklyPassType(studyCafePassType)) {
-            List<StudyCafePass> weeklyPasses = makeWeeklyPasses(studyCafePasses);
-            outputHandler.showPassListForSelection(weeklyPasses);
-            StudyCafePass selectedPass = inputHandler.getSelectPass(weeklyPasses);
-            outputHandler.showPassOrderSummary(selectedPass, null);
+        if (passProcessor.isWeeklyPassType(studyCafePassType)) {
+            StudyCafePass selectedWeeklyPass = getWeeklyPassFromUser(studyCafePasses);
+            outputHandler.showPassOrderSummary(selectedWeeklyPass);
             return;
         }
-        if (isFixedPassType(studyCafePassType)) {
-            List<StudyCafePass> fixedPasses = makeFixedPasses(studyCafePasses);
-            outputHandler.showPassListForSelection(fixedPasses);
-            StudyCafePass selectedPass = inputHandler.getSelectPass(fixedPasses);
+        if (passProcessor.isFixedPassType(studyCafePassType)) {
+            StudyCafePass selectedFixedPass = getFixedPassFromUser(studyCafePasses);
 
-            List<StudyCafeLockerPass> lockerPasses = studyCafeFileHandler.readLockerPasses();
-            StudyCafeLockerPass lockerPass = makeStudyCafeLockerPass(lockerPasses, selectedPass);
+            StudyCafeLockerPass lockerPass = findLockerPassBy(selectedFixedPass);
 
-            boolean isLockerSelected = false;
-            if (isLockerPassEmpty(lockerPass)) {
-                outputHandler.askLockerPass(lockerPass);
-                isLockerSelected = inputHandler.getLockerSelection();
+            LockerPassSelection lockerPassSelection = getLockerPassSelectionFromUser(lockerPass);
+
+            if (isLockerPassSelected(lockerPassSelection)) {
+                outputHandler.showPassOrderSummary(selectedFixedPass, lockerPass);
+                return;
             }
-
-            if (isLockerSelected) {
-                outputHandler.showPassOrderSummary(selectedPass, lockerPass);
-            } else {
-                outputHandler.showPassOrderSummary(selectedPass, null);
-            }
+            outputHandler.showPassOrderSummary(selectedFixedPass);
             return;
         }
-        throw new AppException("해당하는 이용권 종류가 없습니다. 다시 입력해주세요.");
+        
+        throw new AppException("해당하는 이용권이 없습니다. 다시 입력해주세요.");
     }
 
-    private static boolean isLockerPassEmpty(StudyCafeLockerPass lockerPass) {
+    private StudyCafePass getHourlyPassFromUser(List<StudyCafePass> studyCafePasses) {
+        List<StudyCafePass> hourlyPasses = passProcessor.findHourlyPasses(studyCafePasses);
+        outputHandler.showPassListForSelection(hourlyPasses);
+        return inputHandler.getSelectPass(hourlyPasses);
+    }
+
+    private StudyCafePass getWeeklyPassFromUser(List<StudyCafePass> studyCafePasses) {
+        List<StudyCafePass> weeklyPasses = passProcessor.findWeeklyPasses(studyCafePasses);
+        outputHandler.showPassListForSelection(weeklyPasses);
+        return inputHandler.getSelectPass(weeklyPasses);
+    }
+
+    private StudyCafePass getFixedPassFromUser(List<StudyCafePass> studyCafePasses) {
+        List<StudyCafePass> fixedPasses = passProcessor.findFixedPasses(studyCafePasses);
+        outputHandler.showPassListForSelection(fixedPasses);
+        return inputHandler.getSelectPass(fixedPasses);
+    }
+
+    private StudyCafeLockerPass findLockerPassBy(StudyCafePass selectedPass) {
+        List<StudyCafeLockerPass> lockerPasses = passProcessor.readLockerPasses();
+        return passProcessor.findStudyCafeLockerPass(lockerPasses, selectedPass);
+    }
+
+    private LockerPassSelection getLockerPassSelectionFromUser(StudyCafeLockerPass lockerPass) {
+        if (isLockerPassExist(lockerPass)) {
+            outputHandler.askLockerPass(lockerPass);
+        }
+        return inputHandler.getLockerPassSelectionFromUser();
+    }
+
+    private boolean isLockerPassExist(StudyCafeLockerPass lockerPass) {
         return lockerPass != null;
     }
 
-    private StudyCafeLockerPass makeStudyCafeLockerPass(List<StudyCafeLockerPass> lockerPasses, StudyCafePass selectedPass) {
-        return lockerPasses.stream()
-            .filter(option ->
-                option.getPassType() == selectedPass.getPassType()
-                    && option.getDuration() == selectedPass.getDuration()
-            )
-            .findFirst()
-            .orElse(null);
+    private boolean isLockerPassSelected(LockerPassSelection lockerPassSelection) {
+        return lockerPassSelection == LockerPassSelection.SELECTED;
     }
-
-    private List<StudyCafePass> getStudyCafePasses() {
-        return studyCafeFileHandler.readStudyCafePasses();
-    }
-
-    private List<StudyCafePass> makeFixedPasses(List<StudyCafePass> studyCafePasses) {
-        return studyCafePasses.stream()
-            .filter(studyCafePass -> isFixedPassType(studyCafePass.getPassType()))
-            .toList();
-    }
-
-    private List<StudyCafePass> makeWeeklyPasses(List<StudyCafePass> studyCafePasses) {
-        return studyCafePasses.stream()
-            .filter(studyCafePass -> isWeeklyPassType(studyCafePass.getPassType()))
-            .toList();
-    }
-
-    private List<StudyCafePass> makeHourlyPasses(List<StudyCafePass> studyCafePasses) {
-        return studyCafePasses.stream()
-            .filter(studyCafePass -> isHourlyPassType(studyCafePass.getPassType()))
-            .toList();
-    }
-
-    private boolean isFixedPassType(StudyCafePassType studyCafePassType) {
-        return studyCafePassType == StudyCafePassType.FIXED;
-    }
-
-    private boolean isWeeklyPassType(StudyCafePassType studyCafePassType) {
-        return studyCafePassType == StudyCafePassType.WEEKLY;
-    }
-
-    private boolean isHourlyPassType(StudyCafePassType studyCafePassType) {
-        return studyCafePassType == StudyCafePassType.HOURLY;
-    }
-
 }

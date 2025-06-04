@@ -1,7 +1,5 @@
 package cleancode.studycafe.mission;
 
-import cleancode.studycafe.mission.io.StudyCafeFileHandler;
-
 public class StudyCafeApplication {
 
     public static void main(String[] args) {
