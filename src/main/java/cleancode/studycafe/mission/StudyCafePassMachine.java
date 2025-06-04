@@ -6,19 +6,21 @@ import cleancode.studycafe.mission.io.OutputHandler;
 import cleancode.studycafe.mission.pass.*;
 import cleancode.studycafe.mission.pass.lockerpass.LockerPass;
 import cleancode.studycafe.mission.pass.lockerpass.LockerPassSelection;
+import cleancode.studycafe.mission.pass.lockerpass.LockerPasses;
 import cleancode.studycafe.mission.pass.seatpass.SeatPass;
 import cleancode.studycafe.mission.pass.seatpass.SeatPassType;
+import cleancode.studycafe.mission.pass.seatpass.SeatPasses;
 
 import java.util.List;
 
 public class StudyCafePassMachine {
 
-    private final SeatPassProcessor passProcessor;
+    private final PassReader passReader;
     private final InputHandler inputHandler = new InputHandler();
     private final OutputHandler outputHandler = new OutputHandler();
 
     public StudyCafePassMachine() {
-        this.passProcessor = new SeatPassProcessor();
+        this.passReader = new PassReader();
     }
 
     public void run() {
@@ -28,7 +30,7 @@ public class StudyCafePassMachine {
 
             outputHandler.askPassTypeSelection();
             SeatPassType seatPassType = inputHandler.getPassTypeSelectingUserAction();
-            List<SeatPass> seatPasses = passProcessor.readStudyCafePasses();
+            List<SeatPass> seatPasses = passReader.readStudyCafePasses();
             processOrder(seatPassType, seatPasses);
         } catch (AppException e) {
             outputHandler.showSimpleMessage(e.getMessage());
@@ -38,55 +40,35 @@ public class StudyCafePassMachine {
     }
 
     private void processOrder(SeatPassType seatPassType, List<SeatPass> seatPasses) {
-        if (passProcessor.isHourlyPassType(seatPassType)) {
-            SeatPass selectedHourlyPass = getHourlyPassFromUser(seatPasses);
-            outputHandler.showPassOrderSummary(selectedHourlyPass);
-            return;
-        }
-        if (passProcessor.isWeeklyPassType(seatPassType)) {
-            SeatPass selectedWeeklyPass = getWeeklyPassFromUser(seatPasses);
-            outputHandler.showPassOrderSummary(selectedWeeklyPass);
-            return;
-        }
-        if (passProcessor.isFixedPassType(seatPassType)) {
-            SeatPass selectedFixedPass = getFixedPassFromUser(seatPasses);
+        SeatPass selectedPass = getPassFromUser(seatPassType, seatPasses);
 
-            LockerPass lockerPass = findLockerPassBy(selectedFixedPass);
-
+        if (isFixedType(selectedPass)) {
+            LockerPass lockerPass = findLockerPassBy(selectedPass);
             LockerPassSelection lockerPassSelection = getLockerPassSelectionFromUser(lockerPass);
 
             if (isLockerPassSelected(lockerPassSelection)) {
-                outputHandler.showPassOrderSummary(selectedFixedPass, lockerPass);
+                outputHandler.showPassOrderSummary(selectedPass, lockerPass);
                 return;
             }
-            outputHandler.showPassOrderSummary(selectedFixedPass);
-            return;
         }
-        
-        throw new AppException("해당하는 이용권이 없습니다. 다시 입력해주세요.");
+        outputHandler.showPassOrderSummary(selectedPass);
     }
 
-    private SeatPass getHourlyPassFromUser(List<SeatPass> seatPasses) {
-        List<SeatPass> hourlyPasses = passProcessor.findHourlyPasses(seatPasses);
-        outputHandler.showPassListForSelection(hourlyPasses);
-        return inputHandler.getSelectPass(hourlyPasses);
+    private boolean isFixedType(SeatPass selectedPass) {
+        return selectedPass.getPassType() == SeatPassType.FIXED;
     }
 
-    private SeatPass getWeeklyPassFromUser(List<SeatPass> seatPasses) {
-        List<SeatPass> weeklyPasses = passProcessor.findWeeklyPasses(seatPasses);
-        outputHandler.showPassListForSelection(weeklyPasses);
-        return inputHandler.getSelectPass(weeklyPasses);
-    }
-
-    private SeatPass getFixedPassFromUser(List<SeatPass> seatPasses) {
-        List<SeatPass> fixedPasses = passProcessor.findFixedPasses(seatPasses);
-        outputHandler.showPassListForSelection(fixedPasses);
-        return inputHandler.getSelectPass(fixedPasses);
+    private SeatPass getPassFromUser(SeatPassType seatPassType, List<SeatPass> seatPasses) {
+        SeatPasses passes = SeatPasses.of(seatPasses);
+        List<SeatPass> passList = passes.findPassesFrom(seatPassType);
+        outputHandler.showPassListForSelection(passList);
+        return inputHandler.getSelectPass(passList);
     }
 
     private LockerPass findLockerPassBy(SeatPass selectedPass) {
-        List<LockerPass> lockerPasses = passProcessor.readLockerPasses();
-        return passProcessor.findStudyCafeLockerPass(lockerPasses, selectedPass);
+        List<LockerPass> lockerPassList = passReader.readLockerPasses();
+        LockerPasses lockerPasses = LockerPasses.of(lockerPassList);
+        return lockerPasses.findStudyCafeLockerPass(selectedPass);
     }
 
     private LockerPassSelection getLockerPassSelectionFromUser(LockerPass lockerPass) {
