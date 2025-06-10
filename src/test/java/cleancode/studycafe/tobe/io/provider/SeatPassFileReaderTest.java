@@ -17,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SeatPassFileReaderTest {
 
+    // 테스트하기 어려운 구조인 것 같아 String path를 분리했습니다.
+
     @DisplayName("CSV 파일을 읽고 StudyCafeSeatPasses를 반환할 수 있다.")
     @Test
     void getSeatPasses() throws IOException {

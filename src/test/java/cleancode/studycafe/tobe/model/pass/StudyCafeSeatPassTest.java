@@ -9,12 +9,22 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class StudyCafeSeatPassTest {
 
+    // 질문: 모든 public 메서드를 테스트 해야할까요?
+    // 만약 단위 테스트를 하지 않아도 되는 메서드가 있다면 어떤 기준으로 분류해야할까요?
+    // getter나 단순 출력이라면 검증을 하지 않아도 될 것 같다는 느낌인데,
+    // 계산 로직이나 매개변수를 받아서 검증하는 로직이면 검증을 해야할 것 같다는 느낌이 듭니다.
+    // 느낌만으로는 애매해서 정확한 기준이 있는지 궁금합니다!
+
+    // 정상적으로 동작하지 않으면 문제가 생길 것 같은 메서드만 단위 테스트를 작성했습니다.
+
     @DisplayName("좌석권의 정보를 기반으로 할인된 가격을 계산할 수 있다.")
     @Test
     void getDiscountPrice() {
         // given
         StudyCafeSeatPass seatPass = StudyCafeSeatPass.of(StudyCafePassType.FIXED, 2, 4000, 0.0);
+
         // 질문: discountRate나 price가 0이하일 경우도 검증을 해야하는지 궁금합니다! CSV 파일을 읽어오는 것이라도 경계값 테스트를 해야할까요?
+
         // 질문: 매개변수로 null이 들어오는 경우도 테스트해야할까요? CSV 파일을 읽어오는 것이라 null이 들어올 일이 없다고 생각이 드는데, 이런 상황에서도 null 테스트 해야할 지 궁금합니다!
 
         // when
@@ -36,12 +46,14 @@ class StudyCafeSeatPassTest {
         boolean fixedSeatPassCannotUseLocker = fixedSeatPass.cannotUseLocker();
         boolean hourlySeatPassCannotUseLocker = hourlySeatPass.cannotUseLocker();
         boolean weeklySeatPassCannotUseLocker = weeklySeatPass.cannotUseLocker();
+
         // 질문: boolean 변수명 앞에 명사를 넣으면 읽기 좋은 것 같아서 넣어봤는데, 항상 동사로 시작하는 변수명으로 해야할까요?
 
         // then
         assertThat(fixedSeatPassCannotUseLocker).isFalse();
         assertThat(hourlySeatPassCannotUseLocker).isTrue();
         assertThat(weeklySeatPassCannotUseLocker).isTrue();
+
         // 질문: 하나의 테스트로 true와 false를 검증하고 있는데 분리하는 게 좋은지, 합치는 게 좋은지 궁금합니다!
     }
 
@@ -73,6 +85,7 @@ class StudyCafeSeatPassTest {
         boolean isSameDurationType = fixedSeatPass.isSameDurationType(differentDurationLockerPass);
         boolean isSameDurationType2 = fixedSeatPass.isSameDurationType(differentTypeLockerPass);
         boolean isSameDurationType3 = fixedSeatPass.isSameDurationType(differentLockerPass);
+
         // 질문: 동사로 시작하는 변수명을 지을 경우엔 뒤에 숫자를 붙여서 구분하는게 최선일까요? 실무에선 이런 변수명을 어떻게 처리하는지 궁금합니다!
 
         // then

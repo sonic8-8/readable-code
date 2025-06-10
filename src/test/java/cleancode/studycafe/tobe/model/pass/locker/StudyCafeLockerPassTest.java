@@ -10,6 +10,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class StudyCafeLockerPassTest {
 
     // 질문: 사물함권의 좌석권 타입이라는 용어가 맥락이 없어서 그런지 어색하게 느껴집니다. DisplayName에 맥락을 모두 표현해주는 게 좋을까요?
+
+    // 정상적으로 동작하지 않으면 문제가 생길 것 같은 메서드만 단위 테스트를 작성했습니다.
+
     @DisplayName("사물함권의 좌석권 타입을 매개변수로 들어온 좌석권 타입과 같은지 비교할 수 있다.")
     @Test
     void isSamePassType() {

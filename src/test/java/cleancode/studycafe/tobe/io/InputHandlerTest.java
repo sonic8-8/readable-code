@@ -12,6 +12,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class InputHandlerTest {
 
+    // 사용자 입력을 검증할 필요가 있다고 느껴 단위 테스트를 작성했습니다.
+
     @DisplayName("사용자가 패스 타입에 맞는 선택지를 입력할 경우 해당하는 StudyCafePassType Enum을 반환한다.")
     @Test
     void getPassTypeSelectingUserAction() {
