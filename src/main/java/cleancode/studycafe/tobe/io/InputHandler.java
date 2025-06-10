@@ -26,6 +26,19 @@ public class InputHandler {
         throw new AppException("잘못된 입력입니다.");
     }
 
+    public StudyCafePassType getPassTypeSelectingUserAction(String userInput) {
+        if ("1".equals(userInput)) {
+            return StudyCafePassType.HOURLY;
+        }
+        if ("2".equals(userInput)) {
+            return StudyCafePassType.WEEKLY;
+        }
+        if ("3".equals(userInput)) {
+            return StudyCafePassType.FIXED;
+        }
+        throw new AppException("잘못된 입력입니다.");
+    }
+
     public StudyCafeSeatPass getSelectPass(List<StudyCafeSeatPass> passes) {
         String userInput = SCANNER.nextLine();
         int selectedIndex = Integer.parseInt(userInput) - 1;
