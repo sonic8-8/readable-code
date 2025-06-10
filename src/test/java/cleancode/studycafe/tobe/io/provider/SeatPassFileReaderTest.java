@@ -28,7 +28,6 @@ class SeatPassFileReaderTest {
         String contents =
             "HOURLY,2,4000,0.0\n" +
                 "HOURLY,4,6500,0.0";
-
         Files.writeString(tempFile.toPath(), contents);
 
         String path = tempFile.getPath();
